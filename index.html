@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Boys & Girls Data — JSONBin.io</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, sans-serif; background: #f4f4f0; color: #1a1a18; min-height: 100vh; padding: 24px 16px; }
+  h1 { font-size: 20px; font-weight: 600; margin-bottom: 20px; color: #1a1a18; }
+  .card { background: #fff; border: 1px solid #e0dfd8; border-radius: 12px; padding: 18px 20px; margin-bottom: 16px; }
+  .section-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #888780; margin-bottom: 12px; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+  .field { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 140px; }
+  label { font-size: 12px; color: #5f5e5a; }
+  input, select {
+    width: 100%; padding: 8px 10px; font-size: 14px; border: 1px solid #d3d1c7;
+    border-radius: 8px; background: #fff; color: #1a1a18; outline: none;
+    transition: border-color 0.15s;
+  }
+  input:focus, select:focus { border-color: #378add; }
+  .tabs { display: flex; gap: 8px; margin-bottom: 14px; }
+  .tab {
+    flex: 1; padding: 9px; border: 1px solid #d3d1c7; border-radius: 8px;
+    background: transparent; font-size: 14px; cursor: pointer; color: #5f5e5a;
+    transition: all 0.15s;
+  }
+  .tab.boy { background: #e6f1fb; color: #185fa5; border-color: #378add; font-weight: 500; }
+  .tab.girl { background: #fbeaf0; color: #993556; border-color: #d4537e; font-weight: 500; }
+  .btn-row { display: flex; gap: 8px; margin-top: 12px; }
+  .btn {
+    flex: 1; padding: 9px 16px; border-radius: 8px; border: 1px solid #d3d1c7;
+    font-size: 14px; cursor: pointer; background: #fff; color: #1a1a18;
+    transition: all 0.15s;
+  }
+  .btn:hover { background: #f4f4f0; }
+  .btn:active { transform: scale(0.98); }
+  .btn-primary { background: #185fa5; color: #fff; border-color: transparent; }
+  .btn-primary:hover { background: #0c447c; }
+  .btn-success { background: #3b6d11; color: #fff; border-color: transparent; }
+  .btn-success:hover { background: #27500a; }
+  .btn-danger { background: #fff; color: #a32d2d; border-color: #f09595; }
+  .btn-danger:hover { background: #fcebeb; }
+  .msg {
+    font-size: 13px; padding: 9px 13px; border-radius: 8px; margin-top: 10px;
+    display: none;
+  }
+  .msg.show { display: block; }
+  .msg.ok { background: #eaf3de; color: #3b6d11; }
+  .msg.err { background: #fcebeb; color: #a32d2d; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; margin-bottom: 16px; }
+  .stat { background: #fff; border: 1px solid #e0dfd8; border-radius: 10px; padding: 12px 14px; }
+  .stat-label { font-size: 12px; color: #5f5e5a; margin-bottom: 4px; }
+  .stat-val { font-size: 24px; font-weight: 600; }
+  .table-scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 520px; }
+  th { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;
+       color: #5f5e5a; padding: 8px 10px; border-bottom: 1px solid #e0dfd8; text-align: left; }
+  td { padding: 9px 10px; border-bottom: 1px solid #f1efe8; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #f9f8f5; }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 100px; font-size: 12px; font-weight: 500; }
+  .b-boy { background: #e6f1fb; color: #185fa5; }
+  .b-girl { background: #fbeaf0; color: #993556; }
+  .b-child { background: #eaf3de; color: #3b6d11; }
+  .b-teen { background: #faeeda; color: #854f0b; }
+  .del { background: none; border: none; cursor: pointer; color: #a32d2d; font-size: 15px; padding: 0 4px; }
+  .del:hover { color: #501313; }
+  .empty { text-align: center; color: #888780; padding: 24px 0; }
+  @media (max-width: 480px) {
+    h1 { font-size: 17px; }
+    .stats { grid-template-columns: repeat(3, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<h1>Boys &amp; Girls Data Manager</h1>
+
+<!-- Config -->
+<div class="card">
+  <p class="section-label">JSONBin.io configuration</p>
+  <div class="row">
+    <div class="field">
+      <label>Master key</label>
+      <input type="password" id="masterKey" placeholder="$2b$10$..." />
+    </div>
+    <div class="field">
+      <label>Bin ID</label>
+      <input type="text" id="binId" placeholder="6123abc..." />
+    </div>
+  </div>
+  <p id="credStatus" style="font-size:13px;margin-bottom:8px;"></p>
+  <div class="btn-row">
+    <button class="btn" onclick="loadData()">⬇ Load from cloud</button>
+    <button class="btn btn-primary" onclick="saveData()">⬆ Save to cloud</button>
+    <button class="btn btn-danger" onclick="clearCredentials()" title="Remove saved credentials">🗑 Forget</button>
+  </div>
+  <div class="msg" id="msg"></div>
+</div>
+
+<!-- Add Entry -->
+<div class="card">
+  <p class="section-label">Add new entry</p>
+  <div class="tabs">
+    <button class="tab boy" id="tab-boy" onclick="setGender('Boy')">♂ Boy</button>
+    <button class="tab" id="tab-girl" onclick="setGender('Girl')">♀ Girl</button>
+  </div>
+  <div class="row">
+    <div class="field">
+      <label>Name</label>
+      <input type="text" id="name" placeholder="Child's name" />
+    </div>
+    <div class="field">
+      <label>Age (1–18)</label>
+      <input type="number" id="age" min="1" max="18" placeholder="e.g. 7" oninput="autoGroup()" />
+    </div>
+    <div class="field">
+      <label>Age group</label>
+      <select id="ageGroup">
+        <option value="Child (1–10)">Child (1–10)</option>
+        <option value="Teen (10–18)">Teen (10–18)</option>
+      </select>
+    </div>
+  </div>
+  <div class="row">
+    <div class="field">
+      <label>Height (cm)</label>
+      <input type="number" id="height" placeholder="e.g. 120" />
+    </div>
+    <div class="field">
+      <label>Weight (kg)</label>
+      <input type="number" id="weight" placeholder="e.g. 25" />
+    </div>
+    <div class="field" style="justify-content:flex-end;">
+      <button class="btn btn-success" onclick="addEntry()" style="margin-top:auto;">+ Add entry</button>
+    </div>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="stats" id="stats"></div>
+
+<!-- Table -->
+<div class="card">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+    <p class="section-label" style="margin-bottom:0">Records</p>
+    <button class="btn btn-danger" onclick="clearAll()" style="flex:none;padding:5px 14px;font-size:13px;">✕ Clear all</button>
+  </div>
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Name</th>
+          <th>Gender</th>
+          <th>Age</th>
+          <th>Group</th>
+          <th>Height (cm)</th>
+          <th>Weight (kg)</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+let records = [];
+let gender = 'Boy';
+
+function setGender(g) {
+  gender = g;
+  document.getElementById('tab-boy').className = 'tab' + (g === 'Boy' ? ' boy' : '');
+  document.getElementById('tab-girl').className = 'tab' + (g === 'Girl' ? ' girl' : '');
+}
+
+function autoGroup() {
+  const age = parseInt(document.getElementById('age').value);
+  if (!isNaN(age)) {
+    document.getElementById('ageGroup').value = age <= 10 ? 'Child (1–10)' : 'Teen (10–18)';
+  }
+}
+
+function showMsg(text, ok) {
+  const el = document.getElementById('msg');
+  el.textContent = text;
+  el.className = 'msg show ' + (ok ? 'ok' : 'err');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => { el.className = 'msg'; }, 4000);
+}
+
+function addEntry() {
+  const name = document.getElementById('name').value.trim();
+  const age = parseInt(document.getElementById('age').value);
+  if (!name) { showMsg('Please enter a name.', false); return; }
+  if (!age || age < 1 || age > 18) { showMsg('Age must be between 1 and 18.', false); return; }
+  records.push({
+    id: Date.now(),
+    name,
+    gender,
+    age,
+    ageGroup: document.getElementById('ageGroup').value,
+    height: document.getElementById('height').value || '—',
+    weight: document.getElementById('weight').value || '—'
+  });
+  ['name','age','height','weight'].forEach(id => document.getElementById(id).value = '');
+  render();
+}
+
+function deleteEntry(id) {
+  if (!confirm('Delete this entry?')) return;
+  records = records.filter(r => r.id !== id);
+  render();
+}
+
+function clearAll() {
+  if (!confirm('Clear all records? This does not affect cloud data until you save.')) return;
+  records = [];
+  render();
+}
+
+function render() {
+  const tbody = document.getElementById('tbody');
+  if (records.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" class="empty">No records yet. Add one above or load from cloud.</td></tr>';
+  } else {
+    tbody.innerHTML = records.map((r, i) => `
+      <tr>
+        <td style="color:#888780">${i + 1}</td>
+        <td style="font-weight:500">${r.name}</td>
+        <td><span class="badge ${r.gender === 'Boy' ? 'b-boy' : 'b-girl'}">${r.gender}</span></td>
+        <td>${r.age}</td>
+        <td><span class="badge ${r.ageGroup.startsWith('Child') ? 'b-child' : 'b-teen'}">${r.ageGroup}</span></td>
+        <td>${r.height}</td>
+        <td>${r.weight}</td>
+        <td><button class="del" onclick="deleteEntry(${r.id})" title="Delete">✕</button></td>
+      </tr>`).join('');
+  }
+
+  const boys    = records.filter(r => r.gender === 'Boy').length;
+  const girls   = records.filter(r => r.gender === 'Girl').length;
+  const children = records.filter(r => r.ageGroup === 'Child (1–10)').length;
+  const teens   = records.filter(r => r.ageGroup === 'Teen (10–18)').length;
+
+  document.getElementById('stats').innerHTML = `
+    <div class="stat"><div class="stat-label">Total</div><div class="stat-val">${records.length}</div></div>
+    <div class="stat"><div class="stat-label">Boys</div><div class="stat-val" style="color:#185fa5">${boys}</div></div>
+    <div class="stat"><div class="stat-label">Girls</div><div class="stat-val" style="color:#993556">${girls}</div></div>
+    <div class="stat"><div class="stat-label">Children</div><div class="stat-val" style="color:#3b6d11">${children}</div></div>
+    <div class="stat"><div class="stat-label">Teens</div><div class="stat-val" style="color:#854f0b">${teens}</div></div>
+  `;
+}
+
+function getCredentials() {
+  const key = document.getElementById('masterKey').value.trim();
+  const bin = document.getElementById('binId').value.trim();
+  if (!key || !bin) { showMsg('Enter your master key and bin ID first.', false); return null; }
+  localStorage.setItem('jb_master_key', key);
+  localStorage.setItem('jb_bin_id', bin);
+  return { key, bin };
+}
+
+function clearCredentials() {
+  if (!confirm('Remove saved credentials from this browser?')) return;
+  localStorage.removeItem('jb_master_key');
+  localStorage.removeItem('jb_bin_id');
+  document.getElementById('masterKey').value = '';
+  document.getElementById('binId').value = '';
+  document.getElementById('credStatus').textContent = '';
+  showMsg('Credentials cleared.', true);
+}
+
+function loadSavedCredentials() {
+  const key = localStorage.getItem('jb_master_key');
+  const bin = localStorage.getItem('jb_bin_id');
+  if (key) document.getElementById('masterKey').value = key;
+  if (bin) document.getElementById('binId').value = bin;
+  const status = document.getElementById('credStatus');
+  if (key && bin) {
+    status.textContent = '✓ Credentials loaded from this browser';
+    status.style.color = '#3b6d11';
+  }
+}
+
+async function loadData() {
+  const creds = getCredentials();
+  if (!creds) return;
+  showMsg('Loading from JSONBin.io…', true);
+  try {
+    const res = await fetch(`https://api.jsonbin.io/v3/b/${creds.bin}/latest`, {
+      headers: { 'X-Master-Key': creds.key }
+    });
+    const data = await res.json();
+    if (!res.ok) { showMsg('Error ' + res.status + ': ' + (data.message || 'Check key/bin ID.'), false); return; }
+    records = Array.isArray(data.record) ? data.record : [];
+    render();
+    showMsg('Loaded ' + records.length + ' record(s) successfully.', true);
+  } catch (e) {
+    showMsg('Network error: ' + e.message, false);
+  }
+}
+
+async function saveData() {
+  const creds = getCredentials();
+  if (!creds) return;
+  showMsg('Saving to JSONBin.io…', true);
+  try {
+    const res = await fetch(`https://api.jsonbin.io/v3/b/${creds.bin}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Master-Key': creds.key },
+      body: JSON.stringify(records)
+    });
+    const data = await res.json();
+    if (!res.ok) { showMsg('Error ' + res.status + ': ' + (data.message || 'Check key/bin ID.'), false); return; }
+    showMsg('Saved ' + records.length + ' record(s) to cloud.', true);
+  } catch (e) {
+    showMsg('Network error: ' + e.message, false);
+  }
+}
+
+loadSavedCredentials();
+render();
+</script>
+</body>
+</html>
